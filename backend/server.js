@@ -4,6 +4,7 @@ import cookieParser from "cookie-parser";
 
 import connectDB from "./config/db.js";
 import authRoutes from "./routes/auth.routes.js";
+import userRoutes from "./routes/user.routes.js";
 
 
 dotenv.config();
@@ -19,7 +20,7 @@ app.use(cookieParser());
 
 
 app.use("/api/auth", authRoutes);
-
+app.use("/api/user", userRoutes);
 
 connectDB().then( () => {    //first connect the DB then run the app.
   app.listen(PORT, () => {
