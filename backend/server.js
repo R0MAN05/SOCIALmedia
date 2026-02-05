@@ -20,7 +20,7 @@ app.use(cookieParser());
 
 
 app.use("/api/auth", authRoutes);
-app.use("/api/user", userRoutes);
+app.use("/api/users", userRoutes);
 
 connectDB().then( () => {    //first connect the DB then run the app.
   app.listen(PORT, () => {
