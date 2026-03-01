@@ -1,3 +1,6 @@
+import bcrypt from "bcryptjs";
+import {v2 as cloudinary} from "cloudinary";
+
 import User from "../model/user.model.js";
 import Notification from "../model/notification.model.js";
 
@@ -87,22 +90,97 @@ export const getSuggestedUsers = async (req, res) => {
     // here below it’s used to $match and then $sample, which can’t be done with a single find() call. Use find() for simple queries; use aggregate() for pipelines.
     const users = await User.aggregate([
       {
-        $match: {   
-          _id: { $ne: currentUser },   //get all the user's who has an id. except us the currentUser. "ne" means not equals to.
+        $match: {
+          _id: { $ne: currentUser }, //get all the user's who has an id. except us the currentUser. "ne" means not equals to.
         },
       },
       {
-        $sample: { size: 10 },   //got only 10 users from the database.
+        $sample: { size: 10 }, //got only 10 users from the database.
       },
     ]);
 
-    const filteredUsers = users.filter((user) => !usersFollowedByMe.following.includes(user._id)); //filtered out the unfollowed users (new users for suggestions).
+    const filteredUsers = users.filter(
+      (user) => !usersFollowedByMe.following.includes(user._id),
+    ); //filtered out the unfollowed users (new users for suggestions).
     // It builds a new array that excludes anyone you already follow.
     // For each user in users, it checks if usersFollowedByMe.following includes that user._id. The ! flips it, so only users not in your following list remain.
     const suggestedUsers = filteredUsers.slice(0, 4); // takes the first 4 users from filteredUsers and stores them in suggestedUsers.
 
     suggestedUsers.forEach((user) => (user.password = null)); //loops through those 4 users and sets password to null so it won’t be sent back in the response.
-  
+
     res.status(200).json(suggestedUsers);
   } catch (error) {}
 };
+
+export const updateUserProfile = async (req, res) => {
+  console.log("Hello world");
+  const { username, fullName, email, currentPassword, newPassword, bio, links } = req.body;    // user gonna pass these from the form input fields.
+  let { profileImg, coverImg } = req.body; // let cuz it gonna be updated below.
+  const userId = req.user._id;
+  console.log(username);
+  console.log(profileImg);
+
+  try {
+    let user = await User.findById(userId);
+    if(!user) return res.status(404).json({ error: "User not found"});
+
+    if((currentPassword && !newPassword) || (!currentPassword && newPassword)) {
+      return res.status(400).json({ error: "Please provide both current password and new password"});
+    }
+
+    // Handle password change if requested
+    if(currentPassword && newPassword) {
+      const isMatched = await bcrypt.compare(currentPassword, user.password);
+      if(!isMatched) return res.status(400).json({ error: "Current password is incorrect"});
+      if(newPassword.length < 6) return res.status(400).json({ error: "Password must be at least 6 characters long"});
+      const salt = await bcrypt.genSalt(10);
+      user.password = await bcrypt.hash(newPassword, salt);
+    }
+
+    // Handle profile image update
+    if(profileImg) {
+      if(user.profileImg){
+        await cloudinary.uploader.destroy(user.profileImg.split("/").pop().split(".")[0]);
+      }
+      const uploadedResponse = await cloudinary.uploader.upload(profileImg);
+      profileImg = uploadedResponse.secret_url;
+    }
+
+    // Handle cover image update
+    if(coverImg) {
+      if(user.coverImg){
+        await cloudinary.uploader.destroy(user.coverImg.split("/").pop().split(".")[0]);
+      }
+      const uploadedResponse = await cloudinary.uploader.upload(coverImg);
+      coverImg = uploadedResponse.secret_url;
+    }
+
+    // Update other profile fields
+    user.username = username || user.username;
+    user.fullName = fullName || user.fullName;
+    user.email = email || user.email;
+    user.bio = bio || user.bio;
+    user.links = links || user.links;
+    user.profileImg = profileImg || user.profileImg;
+    user.coverImg = coverImg || user.coverImg;
+
+    user = await user.save();
+    user.password = null;
+    return res.status(200).json(user);
+  } catch (error) {
+    console.log(" Error in updateUserProfile controller", error.message);
+    return res.status(500).json({ error: error.message});
+  }
+};
+
+export const deleteUser = async (req,res) => {
+try {
+  const userId = req.user._id;
+  const user = await User.findByIdAndDelete(userId);
+  if(!user) return res.status(404).json({error:"User not found"});
+  return res.status(200).json({ message: "User deleted successfully" });
+} catch (error) {
+  console.log("error in deleteUser controller", error.message);
+  return res.status(500).json({ error: error.message});
+}
+}
