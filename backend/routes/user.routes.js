@@ -14,4 +14,5 @@ router.post("/update", protectRoute, updateUserProfile);
 
 router.delete("/delete", protectRoute, deleteUser);
 
+
 export default router;

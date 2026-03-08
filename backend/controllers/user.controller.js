@@ -1,8 +1,8 @@
 import bcrypt from "bcryptjs";
 import {v2 as cloudinary} from "cloudinary";
 
-import User from "../model/user.model.js";
-import Notification from "../model/notification.model.js";
+import User from "../models/user.model.js";
+import Notification from "../models/notification.model.js";
 
 export const getUserProfile = async (req, res) => {
   const { username } = req.params;
@@ -113,12 +113,11 @@ export const getSuggestedUsers = async (req, res) => {
 };
 
 export const updateUserProfile = async (req, res) => {
-  console.log("Hello world");
+
   const { username, fullName, email, currentPassword, newPassword, bio, links } = req.body;    // user gonna pass these from the form input fields.
   let { profileImg, coverImg } = req.body; // let cuz it gonna be updated below.
   const userId = req.user._id;
-  console.log(username);
-  console.log(profileImg);
+
 
   try {
     let user = await User.findById(userId);
