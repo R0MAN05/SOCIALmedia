@@ -10,15 +10,20 @@ import { toast } from "react-hot-toast";
 
 import LoadingSpinner from "./LoadingSpinner";
 import { formatPostDate } from "../../utils/date";
+import { fetchAuthUser } from "../../utils/fetchAuthUser";
 
 const Post = ({ post }) => {
 	const [comment, setComment] = useState("");
-	const { data: authUser } = useQuery({ queryKey: ["authUser"] });
+	const { data: authUser } = useQuery({
+		queryKey: ["authUser"],
+		queryFn: fetchAuthUser,
+		retry: false,
+	});
 	const queryClient = useQueryClient();
 	const postOwner = post.user;
-	const isLiked = post.likes.includes(authUser._id);
+	const isLiked = authUser ? post.likes.includes(authUser._id) : false;
 
-	const isMyPost = authUser._id === post.user._id;
+	const isMyPost = authUser?._id === post.user._id;
 
 	const formattedDate = formatPostDate(post.createdAt);
 
@@ -59,19 +64,9 @@ const Post = ({ post }) => {
 				throw new Error(error);
 			}
 		},
-		onSuccess: (updatedLikes) => {
-			// this is not the best UX, bc it will refetch all posts
-			// queryClient.invalidateQueries({ queryKey: ["posts"] });
-
-			// instead, update the cache directly for that post
-			queryClient.setQueryData(["posts"], (oldData) => {
-				return oldData.map((p) => {
-					if (p._id === post._id) {
-						return { ...p, likes: updatedLikes };
-					}
-					return p;
-				});
-			});
+		onSuccess: (data) => {
+			toast.success(data?.message || "Post reaction updated");
+			queryClient.invalidateQueries({ queryKey: ["posts"] });
 		},
 		onError: (error) => {
 			toast.error(error.message);
