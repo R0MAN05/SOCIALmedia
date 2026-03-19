@@ -7,6 +7,8 @@ import LoadingSpinner from "../../components/common/LoadingSpinner";
 import { IoSettingsOutline } from "react-icons/io5";
 import { FaUser } from "react-icons/fa";
 import { FaHeart } from "react-icons/fa6";
+import { FaTrash } from "react-icons/fa";
+import { FaRegCommentDots } from "react-icons/fa";
 
 const NotificationPage = () => {
 	const queryClient = useQueryClient();
@@ -47,6 +49,24 @@ const NotificationPage = () => {
 		},
 	});
 
+	const { mutate: deleteNotificationById, isPending: isDeletingOne } = useMutation({
+		mutationFn: async (notificationId) => {
+			const res = await fetch(`/api/notifications/${notificationId}`, {
+				method: "DELETE",
+			});
+			const data = await res.json();
+			if (!res.ok) throw new Error(data.error || "Failed to delete notification");
+			return data;
+		},
+		onSuccess: (data) => {
+			toast.success(data?.message || "Notification deleted successfully");
+			queryClient.invalidateQueries({ queryKey: ["notifications"] });
+		},
+		onError: (error) => {
+			toast.error(error.message);
+		},
+	});
+
 	return (
 		<>
 			<div className='flex-[4_4_0] border-l border-r border-base-300 min-h-screen'>
@@ -74,9 +94,11 @@ const NotificationPage = () => {
 				{notifications?.length === 0 && <div className='text-center p-4 font-bold'>No notifications 🤔</div>}
 				{notifications?.map((notification) => (
 					<div className='border-b border-base-300' key={notification._id}>
-						<div className='flex gap-2 p-4'>
+						<div className='flex items-start justify-between gap-2 p-4'>
+							<div className='flex gap-2'>
 							{notification.type === "follow" && <FaUser className='w-7 h-7 text-primary' />}
 							{notification.type === "like" && <FaHeart className='w-7 h-7 text-error' />}
+							{notification.type === "comment" && <FaRegCommentDots className='w-7 h-7 text-info' />}
 							<Link to={`/profile/${notification.from.username}`}>
 								<div className='avatar'>
 									<div className='w-8 rounded-full'>
@@ -85,9 +107,22 @@ const NotificationPage = () => {
 								</div>
 								<div className='flex gap-1'>
 									<span className='font-bold'>@{notification.from.username}</span>{" "}
-									{notification.type === "follow" ? "followed you" : "liked your post"}
+									{notification.type === "follow"
+										? "followed you"
+										: notification.type === "comment"
+											? "commented on your post"
+											: "liked your post"}
 								</div>
 							</Link>
+							</div>
+							<button
+								type='button'
+								className='btn btn-ghost btn-xs'
+								disabled={isDeletingOne}
+								onClick={() => deleteNotificationById(notification._id)}
+							>
+								<FaTrash className='w-3 h-3 text-error' />
+							</button>
 						</div>
 					</div>
 				))}
