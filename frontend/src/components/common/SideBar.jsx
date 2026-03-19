@@ -57,7 +57,7 @@ const SideBar = () => {
 
 	return (
 		<div className='md:flex-[2_2_0] w-18 max-w-52'>
-			<div className='sticky top-0 left-0 h-screen flex flex-col border-r border-base-300 w-20 md:w-full'>
+			<div className='sticky top-0 left-0 h-screen flex flex-col border-r-2 border-base-content/20 w-20 md:w-full'>
 				<Link to='/' className='flex justify-center md:justify-start w-full'>
 					<span className='w-full px-1 md:px-2 py-2 text-[10px] sm:text-xs md:text-xl leading-tight text-center font-extrabold rounded-full hover:bg-base-200 wrap-break-word'>
 						socialMedia
