@@ -77,6 +77,16 @@ export const CommentOnPost = async (req,res) => {
         post.comments.push(comment);
         await post.save();
 
+        // Create notification only when someone comments on another user's post.
+        if (post.user.toString() !== userId.toString()) {
+            const notification = new Notification({
+                from: userId,
+                to: post.user,
+                type: "comment",
+            });
+            await notification.save();
+        }
+
         res.status(200).json(post);
     } catch (error) {
         console.log("Error in commentOnPost controller", error);

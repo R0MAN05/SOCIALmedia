@@ -1,4 +1,7 @@
 import { useState } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
 import useUpdateUserProfile from "../../components/hooks/useUpdateUserProfile";
 
 const EditProfileModal = ({ authUser }) => {
@@ -7,7 +10,7 @@ const EditProfileModal = ({ authUser }) => {
 		username: authUser?.username || "",
 		email: authUser?.email || "",
 		bio: authUser?.bio || "",
-		link: authUser?.link || "",
+		links: authUser?.links || authUser?.link || "",
 		newPassword: "",
 		currentPassword: "",
 	});
@@ -17,9 +20,34 @@ const EditProfileModal = ({ authUser }) => {
 	});
 
 	const { updateProfile, isUpdatingProfile } = useUpdateUserProfile();
+	const queryClient = useQueryClient();
+	const navigate = useNavigate();
+
+	const { mutate: deleteAccount, isPending: isDeletingAccount } = useMutation({
+		mutationFn: async () => {
+			const res = await fetch("/api/users/delete", { method: "DELETE" });
+			const data = await res.json();
+			if (!res.ok) throw new Error(data.error || "Failed to delete account");
+			return data;
+		},
+		onSuccess: (data) => {
+			toast.success(data?.message || "Account deleted successfully");
+			queryClient.setQueryData(["authUser"], null);
+			navigate("/login");
+		},
+		onError: (error) => {
+			toast.error(error.message);
+		},
+	});
 
 	const handleInputChange = (e) => {
 		setFormData({ ...formData, [e.target.name]: e.target.value });
+	};
+
+	const handleDeleteAccount = () => {
+		const confirmed = window.confirm("Are you sure you want to permanently delete your account?");
+		if (!confirmed) return;
+		deleteAccount();
 	};
 
 	return (
@@ -100,12 +128,20 @@ const EditProfileModal = ({ authUser }) => {
 							type='text'
 							placeholder='Link'
 							className='flex-1 input border border-base-300 rounded p-2 input-md'
-							value={formData.link}
-							name='link'
+							value={formData.links}
+							name='links'
 							onChange={handleInputChange}
 						/>
 						<button className='btn btn-primary rounded-full btn-sm'>
 							{isUpdatingProfile ? "Updating..." : "Update"}
+						</button>
+						<button
+							type='button'
+							className='btn btn-error btn-outline rounded-full btn-sm'
+							disabled={isDeletingAccount}
+							onClick={handleDeleteAccount}
+						>
+							{isDeletingAccount ? "Deleting..." : "Delete Account"}
 						</button>
 					</form>
 				</div>
