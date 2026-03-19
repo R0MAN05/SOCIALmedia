@@ -59,6 +59,8 @@ const ProfilePage = () => {
 	const isMyProfile = authUser?._id === user?._id;
 	const memberSinceDate = formatMemberSinceDate(user?.createdAt);
 	const amIFollowing = authUser?.following.includes(user?._id);
+	const profileLink = user?.links || user?.link;
+	const profileLinkUrl = profileLink?.startsWith("http") ? profileLink : `https://${profileLink || ""}`;
 
 	const handleImgChange = (e, state) => {
 		const file = e.target.files[0];
@@ -173,18 +175,17 @@ const ProfilePage = () => {
 								</div>
 
 								<div className='flex gap-2 flex-wrap'>
-									{user?.link && (
+									{profileLink && (
 										<div className='flex gap-1 items-center '>
 											<>
 												<FaLink className='w-3 h-3 text-base-content/60' />
 												<a
-													href='https://youtube.com/@asaprogrammer_'
+													href={profileLinkUrl}
 													target='_blank'
 													rel='noreferrer'
 													className='text-sm text-primary hover:underline'
 												>
-													{/* Updated this after recording the video. I forgot to update this while recording, sorry, thx. */}
-													{user?.link}
+													{profileLink}
 												</a>
 											</>
 										</div>
