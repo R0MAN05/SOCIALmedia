@@ -39,7 +39,7 @@ export const followUnfollowUser = async (req, res) => {
 
     // if (client)user or the another user that the client trying to follow or unfollow doesnt exists:
     if (!userToModify || !currentUser)
-      return res.staus(400).json({ error: "User not found." });
+      return res.status(400).json({ error: "User not found." });
 
     const isFollowing = currentUser.following.includes(id); //get the following user by their id.
 
@@ -109,7 +109,10 @@ export const getSuggestedUsers = async (req, res) => {
     suggestedUsers.forEach((user) => (user.password = null)); //loops through those 4 users and sets password to null so it won’t be sent back in the response.
 
     res.status(200).json(suggestedUsers);
-  } catch (error) {}
+  } catch (error) {
+    console.log("Error in getSuggestedUsers controller", error.message);
+    return res.status(500).json({ error: "Internal server error" });
+  }
 };
 
 export const updateUserProfile = async (req, res) => {
@@ -142,7 +145,7 @@ export const updateUserProfile = async (req, res) => {
         await cloudinary.uploader.destroy(user.profileImg.split("/").pop().split(".")[0]);
       }
       const uploadedResponse = await cloudinary.uploader.upload(profileImg);
-      profileImg = uploadedResponse.secret_url;
+      profileImg = uploadedResponse.secure_url;
     }
 
     // Handle cover image update
@@ -151,7 +154,7 @@ export const updateUserProfile = async (req, res) => {
         await cloudinary.uploader.destroy(user.coverImg.split("/").pop().split(".")[0]);
       }
       const uploadedResponse = await cloudinary.uploader.upload(coverImg);
-      coverImg = uploadedResponse.secret_url;
+      coverImg = uploadedResponse.secure_url;
     }
 
     // Update other profile fields

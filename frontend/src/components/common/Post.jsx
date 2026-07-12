@@ -23,7 +23,9 @@ const Post = ({ post }) => {
 	const postOwner = post.user;
 	const isLiked = authUser ? post.likes.includes(authUser._id) : false;
 
-	const isMyPost = authUser?._id === post.user._id;
+	const isMyPost = authUser?._id === post.user?._id;
+
+	if (!postOwner) return null;
 
 	const formattedDate = formatPostDate(post.createdAt);
 

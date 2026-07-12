@@ -1,7 +1,7 @@
 import jwt from "jsonwebtoken";
 
 export const generateTokenAndSetCookie = (userId, res) => {
-    const token = jwt.sign({ userId }, process.env.JWT_SECRET, {   // the {userId} is passed in a playload in this creacted token. Is used in protectRoute.js
+    const token = jwt.sign({ userId }, process.env.JWT_SECRET, {   // the {userId} is passed in a playload in this created token. Is used in protectRoute.js
         expiresIn: "15d"
     });
 

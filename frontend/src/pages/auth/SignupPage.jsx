@@ -1,12 +1,16 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { MdOutlineMail } from "react-icons/md";
 import { FaUser } from "react-icons/fa";
 import { MdPassword } from "react-icons/md";
 import { MdDriveFileRenameOutline } from "react-icons/md";
+import { useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 
 const SignUpPage = () => {
+	const navigate = useNavigate();
+	const queryClient = useQueryClient();
+
 	const [formData, setFormData] = useState({
 		email: "",
 		username: "",
@@ -33,9 +37,11 @@ const SignUpPage = () => {
 
 			const data = await res.json();
 			if (!res.ok) throw new Error(data.error || "Failed to create account");
-			
+
+			queryClient.setQueryData(["authUser"], data);
 			toast.success("Account created successfully");
 			setFormData({ email: "", username: "", fullName: "", password: "" });
+			navigate("/");
 		} catch (err) {
 			setError(err.message);
 			toast.error(err.message);
