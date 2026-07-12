@@ -30,15 +30,15 @@ app.use(express.urlencoded({ extended: true}));    // to parse form data(urlenco
 app.use(cookieParser());
 
 
-app.use("/api/auth/{*path}", authRoutes);
-app.use("/api/users/{*path}", userRoutes);
-app.use("/api/posts/{*path}", postRoutes);
-app.use("/api/notifications/{*path}", notificationRoutes);
+app.use("/api/auth", authRoutes);
+app.use("/api/users", userRoutes);
+app.use("/api/posts", postRoutes);
+app.use("/api/notifications", notificationRoutes);
 
 if (process.env.NODE_ENV === "production") {
   const frontendDist = path.join(__dirname, "..", "frontend", "dist");
   app.use(express.static(frontendDist));
-  app.get("/{*splat}", (req, res) => {
+  app.get("*", (req, res) => {
     res.sendFile(path.join(frontendDist, "index.html"));
   });
 }
