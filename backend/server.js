@@ -47,4 +47,7 @@ connectDB().then( () => {    //first connect the DB then run the app.
   app.listen(PORT, () => {
     console.log("Server started on PORT", PORT);
   });
-})
+}).catch((error) => {
+  console.error("Failed to connect to MongoDB:", error.message);
+  process.exit(1);
+});
