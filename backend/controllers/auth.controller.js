@@ -1,6 +1,6 @@
 import User from "../models/user.model.js";
 import bcrypt from "bcryptjs";
-import { generateTokenAndSetCookie } from "../lib/generateToken.js"; // Add this import
+import { generateTokenAndSetCookie } from "../lib/generateToken.js";
 
 export const signup = async (req, res) => {
   try {
@@ -90,7 +90,7 @@ export const login = async (req, res) => {
     });
   } catch (error) {
     console.log("Error in signup controller", error.message);
-    res.status(500).json({ error: "Internal jgijrgsg Server Error" });
+    res.status(500).json({ error: "Internal Server Error" });
   }
 };
 
