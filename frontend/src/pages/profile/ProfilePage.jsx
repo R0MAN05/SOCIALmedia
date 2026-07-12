@@ -49,7 +49,7 @@ const ProfilePage = () => {
 				}
 				return data;
 			} catch (error) {
-				throw new Error(error);
+				throw error;
 			}
 		},
 	});
